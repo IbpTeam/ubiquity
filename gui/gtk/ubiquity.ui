@@ -1142,6 +1142,7 @@
     <property name="window_position">center</property>
     <property name="icon_name">gtk-dialog-warning</property>
     <property name="type_hint">dialog</property>
+    <property name="deletable">False</property>
     <property name="gravity">center</property>
     <property name="transient_for">live_installer</property>
     <signal name="realize" handler="set_window_hints" swapped="no"/>
