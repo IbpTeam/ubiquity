@@ -1007,8 +1007,11 @@ class PageGtk(PageBase):
             custom_entry_text = str(round((cur_size_mb / 1000),2))
             self.partition_size_max_label.set_text(max_label_text)
             self.partition_size_min_label.set_text(min_label_text)
-            self.partition_size_custom_entry.set_text(custom_entry_text)
-            current_size = str(self.partition_size_custom_entry.get_text())
+            self.partition_size_custom_entry.set_adjustment(
+                Gtk.Adjustment(value=max_size_mb, lower=min_size_mb, upper=max_size_mb,
+                               step_increment=1, page_increment=100))
+            self.partition_size_custom_entry.set_value(cur_size_mb)
+            current_size = str(self.partition_size_custom_entry.get_value())
         self.partition_use_combo.clear()
         renderer = Gtk.CellRendererText()
         self.partition_use_combo.pack_start(renderer, True)
@@ -1093,7 +1096,7 @@ class PageGtk(PageBase):
             elif self.partition_size_min.get_active():
                 size = str(min_size_mb)
             elif self.partition_size_custom.get_active():
-                size = str(float(self.partition_size_custom_entry.get_text()) * 1000)
+                size = str(self.partition_size_custom_entry.get_value())
     
             if partition['parted']['type'] == 'primary':
                 prilog = PARTITION_TYPE_PRIMARY
@@ -1129,13 +1132,12 @@ class PageGtk(PageBase):
         if not create and (response == Gtk.ResponseType.OK):
             size = None
             if current_size is not None:
-#                size = str(self.partition_size_spinbutton.get_value())
                 if self.partition_size_max.get_active():
-                    size = str(max_size_mb)
+                    size = str(cur_size_mb)
                 elif self.partition_size_min.get_active():
                     size = str(min_size_mb + 1)
                 elif self.partition_size_custom.get_active():
-                    size = str(self.partition_size_custom_entry.get_text())
+                    size = str(self.partition_size_custom_entry.get_value())
 
             method_iter = self.partition_use_combo.get_active_iter()
             if method_iter is None:
@@ -2585,12 +2587,9 @@ class Page(plugin.Plugin):
                                 devpart = value.get('parted',{}).get('path')   
                                 devsize = value.get('parted',{}).get('size')
                                 devsizegb = int(devsize) / 1073741824
-                                f = open('/tmp/partinfo.txt', "w")
-                                f.write(devpart)
-                                f.write(" ")
-                                f.write(str(devsizegb))
-                                f.write(" GB")
-                                f.close()
+                                self.preseed('ubiquity/partitionnum_liting',devpart)
+                                sizetext= str("%.2f"%devsizegb) + ' ' + 'GB'
+                                self.preseed('ubiquity/partitionsize_liting', sizetext)
 #end by liting for getting
                 else:
                     self.debug('Partman: Building cache')
